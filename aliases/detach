@@ -1,0 +1,5 @@
+# detach - run a command in the background without a controlling terminal
+detach() {
+  emulate -LR zsh
+  ( nohup "$@" >/dev/null 2>&1 & )
+}

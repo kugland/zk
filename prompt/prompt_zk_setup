@@ -1,0 +1,129 @@
+prompt_zk_help() {
+  cat <<'HELP'
+This theme accepts an optional argument, a preset name.
+The available presets are:
+
+  simple  - A simple prompt with just ASCII characters.
+  fancy   - A fancy prompt that uses Nerd Fonts icons and powerline separators.
+  minimal - A minimal prompt, for taking screenshots.
+
+All themes already implement OSC 7 (current working directory) and OSC 133
+(semantic prompt).
+HELP
+}
+
+
+prompt_zk_setup() {
+  emulate zsh
+
+  preset="${1:-simple}"
+  if [[ $preset != (simple|fancy|minimal) ]]; then
+    print "prompt_zk_setup: valid presets are 'simple', 'fancy', and 'minimal'."
+    return 1
+  fi
+
+  zmodload zsh/terminfo
+  typeset -g prompt_opts
+  prompt_opts=( percent subst cr sp )
+  setopt NO_PROMPT_{BANG,PERCENT,SUBST} "PROMPT_${^prompt_opts[@]}"
+  setopt local_options extended_glob no_sh_word_split
+
+  typeset -g __zk_prompt__preset="$preset"
+
+  # PS3 and PS4 are the same for all presets.
+  PS3='?# '
+  PS4='+%N:%i> '
+  # Git styles are the same for all except minimal - we'll reset them there.
+  zstyle :plugin:zk_git styles \
+    WHERE_TAG            '%B%0F#%f%b'   WHERE_COMMIT         '%B%0F@%f%b'       \
+    STASHES              '%0F*%B'       NUM_STAGED           '%2F+%B'           \
+    NUM_UNSTAGED         '%1F+%B'       NUM_UNTRACKED        '%1F*%B'           \
+    COMMITS_BEHIND       '%6F↓%B'       COMMITS_AHEAD        '%6F↑%B'           \
+    PUSH_COMMITS_BEHIND  '%6F←%B'       PUSH_COMMITS_AHEAD   '%6F→%B'           \
+    NUM_CONFLICTED       '%1F!%B'       ACTION               $'%{\e[3m%}%B%3F'  \
+    LARGE_REPO           '%B%F{black}(large)%f%b'
+
+  (( ${+__zk_git__status} )) || typeset -g __zk_git__status=''
+
+  case $preset in
+
+    simple)
+      PS1='%B%F{%(!.1.2)}%(!..%n@)%m%f:%F{blue}%~%f%b%# '
+      RPROMPT='%(0?.. %K{1}%B%7F %? %f%b%k )${__zk_git__status:-}'
+      PS2='%(1_.».)%(2_.».)%(3_.».)%(4_.».)%(5_.».)%(6_.».)%(7_.».)%(8_.».) '
+      RPS2='%B%F{black}[%f%b${${(%):-%^}/#%/cont}%B%F{black}]%f%b'
+      PROMPT_EOL_MARK='%B%F{243}¤%f%b'
+      zstyle :plugin:zk_git identifier '%3Fgit%f'
+      ;;
+
+    fancy)
+      local red=red green=green blue=blue git=yellow
+      [[ ${terminfo[colors]} -eq 256 ]] && red=167 green=28 blue=67 git=208
+      [[ $COLORTERM = (truecolor|24bit) ]] && red='#b24742' green='#47a730' blue='#547bb5'
+      PS1="%K{%(!.$red.$green)}%B%F{255} %(!..%n@)%m%b%F{%(!.$red.$green)}%K{$blue} "
+      PS1+="%B%F{255}%~%b%F{$blue}%K{%(!.$red.$green)}%k%F{%(!.$red.$green)}%f "
+      RPROMPT='%(0?.. %1F%K{1}%B%7F%?%f%b%k%1F%f )${__zk_git__status:-}'
+      PS2='%(1_.⟩.)%(2_.⟩.)%(3_.⟩.)%(4_.⟩.)%(5_.⟩.)%(6_.⟩.)%(7_.⟩.)%(8_.⟩.) '
+      RPS2='%B%F{black}[%f%b${${(%):-%^}/#%/cont}%B%F{black}]%f%b'
+      PROMPT_EOL_MARK=$'%B%F{243}¤%f%b'
+      zstyle :plugin:zk_git identifier "%B%F{$git}%f%b"
+      ;;
+
+    minimal)
+      PS1='%B%F{%(!.1.2)}%#%b%f '
+      RPROMPT=''
+      PS2='%_> '
+      RPS2=''
+      PROMPT_EOL_MARK='%S%%%s'
+      zstyle -d :plugin:zk_git
+      ;;
+
+  esac
+
+  autoload -Uz __zk_prompt__{extrainfo,osc7,osc133,ssh}
+
+  __zk_prompt__osc7
+  __zk_prompt__extrainfo
+  __zk_prompt__ssh
+  if (( ${+commands[nix-shell]} )); then
+    autoload -Uz __zk_prompt__nixshell
+    __zk_prompt__nixshell
+  fi
+  __zk_prompt__osc133 # This must be called last.
+
+  if (( ${+functions[prompt_cleanup]} )); then
+    prompt_cleanup unset __zk_prompt__preset
+    prompt_cleanup unset __zk_git__status
+    prompt_cleanup zstyle -d :plugin:zk_git
+  fi
+}
+
+
+prompt_zk_preview() {
+  emulate -L zsh
+
+  print -P '%Bsimple%b'
+  print -P 'user: %B%F{2}user@hostname%f:%F{blue}~/directory%f%b%% '
+  print -P 'root: %B%F{1}hostname%f:%F{blue}~/directory%f%b# '
+
+  print ''
+  print -P '%Bfancy%b (requires powerline font)'
+  (( ${terminfo[colors]} >= 256 )) && red=167 green=28 blue=67 git=208
+  [[ $COLORTERM = (truecolor|24bit) ]] && red='#b24742' green='#47a730' blue='#547bb5'
+  print -Pn "user: %K{$green}%B%F{255} user@hostname%b%F{$green}%K{$blue} "
+  print -P "%B%F{255}~/directory%b%F{$blue}%K{$green}%k%F{$green}%f "
+  print -Pn "root: %K{$red}%B%F{255} hostname%b%F{$red}%K{$blue} "
+  print -P "%B%F{255}~/directory%b%F{$blue}%K{$red}%k%F{$red}%f "
+
+  print ''
+  print -P '%Bminimal%b'
+  print -P 'user: %B%F{2}%%%b%f '
+  print -P 'root: %B%F{1}#%b%f '
+
+  print ''
+  print 'This theme also integrates with zk_git, a plugin that shows'
+  print 'the git status of the current directory.'
+}
+
+
+prompt_zk_setup "$@"

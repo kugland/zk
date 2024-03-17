@@ -1,0 +1,45 @@
+# Detect ssh sessions
+
+__zk_prompt__ssh() {
+  # First try the easy way: if SSH_CONNECTION is set, we're running under SSH.
+  __zk_prompt__ssh_session=${${SSH_CONNECTION:+1}:-0}
+
+  # If SSH_CONNECTION is not set, we still might be running in a ssh session (if, for example,
+  # we're running under sudo). In that case, we check whether the parent process is sshd.
+  # This will fail for non-root users if /proc was mounted with hidepid=2, though.
+  if (( ! __zk_prompt__ssh_session )); then
+    () {
+      local IFS=' '                                   # This is needed to split /proc/<pid>/stat.
+      local pid=$$                                    # The current process ID.
+      local exe                                       # Basename of the executable.
+      while ((pid > 1)) {                             # Continue until we reach the init process.
+        test -d /proc/$pid || break                   # Give up if the directory doesn't exist.
+        pid=${${=${"${:-$(</proc/$pid/stat)}"/*) /}}[2]} # Get the parent process ID.
+        exe=${${:-/proc/$pid/exe}:A:t}                # Get the basename of its executable.
+        [[ $exe = exe ]] && return 1                  # Path canonicalization failed, return false.
+        [[ $exe = sshd ]] && return 0                 # sshd process is our ancestor, return true.
+      }
+      return 1
+    } && __zk_prompt__ssh_session=1
+  fi
+
+  readonly __zk_prompt__ssh_session
+
+  __zk_prompt__ssh__extrainfo() {
+    emulate -LR zsh
+
+    if (( ${__zk_prompt__ssh_session} )); then
+      case $__zk_prompt__preset in
+        simple)
+          reply[before_prompt]="%B%F{black}[%b%fssh%B%F{black}]%b%f "
+          ;;
+        fancy)
+          reply[before_prompt]="%K{yellow}%B%F{white} ssh %f%b%k"
+          ;;
+      esac
+    fi
+    return 0
+  }
+
+  __zk_prompt__extrainfo__funcs+=( __zk_prompt__ssh__extrainfo )
+}

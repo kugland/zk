@@ -1,0 +1,44 @@
+# Implement OSC 133 for semantic prompt.
+
+__zk_prompt__osc133() {
+  emulate -LR zsh
+  typeset -gi __zk_prompt__osc133__executed=0
+
+  printf -v PS2   '%%{%s%%}%s%%{%s%%}'  $'\e]133;P;k=s\e\\' "$PS2"   $'\e]133;B\e\\'
+  printf -v RPS2  '%%{%s%%}%s%%{%s%%}'  $'\e]133;P;k=r\e\\' "$RPS2"  $'\e]133;B\e\\'
+
+  __zk_prompt__osc133__extrainfo() {
+    reply[before_prompt]=$'%{\e]133;P;k=i\e\\%}'
+    reply[after_prompt]=$'%{\e]133;B\e\\%}'
+    reply[before_rprompt]=$'%{\e]133;P;k=r\e\\%}'
+    reply[after_rprompt]=$'%{\e]133;B\e\\%}'
+    return 0
+  }
+
+  __zk_prompt__osc133__precmd() {
+    local ret=$?
+    emulate -LR zsh
+    if (( __zk_prompt__osc133__executed )); then
+      printf '\e]133;D;err=%s;aid=%s\e\\' $ret $$
+      __zk_prompt__osc133__executed=0
+    elif (( ${+ZLE_LINE_ABORTED} )); then
+      printf '\e]133;D;err=CANCEL;aid=%s\e\\' $$
+      unset ZLE_LINE_ABORTED
+    fi
+  }
+
+  __zk_prompt__osc133__preexec() {
+    emulate -LR zsh
+    printf '\e]133;C;%s\e\\'
+  }
+
+  add-zsh-hook precmd __zk_prompt__osc133__precmd
+  add-zsh-hook preexec __zk_prompt__osc133__preexec
+  __zk_prompt__extrainfo__funcs+=( __zk_prompt__osc133__extrainfo )
+
+  if (( ${+functions[prompt_cleanup]} )); then
+    unset __zk_prompt__osc133__executed
+    prompt_cleanup add-zsh-hook -d precmd __zk_prompt__osc133__precmd
+    prompt_cleanup add-zsh-hook -d preexec __zk_prompt__osc133__preexec
+  fi
+}

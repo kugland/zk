@@ -1,0 +1,20 @@
+# Implement OSC 7 to pass the current working directory to the terminal emulator.
+
+__zk_prompt__osc7() {
+  emulate -LR zsh
+  autoload -Uz add-zsh-hook
+
+  __zk_prompt__osc7__chpwd() {
+    emulate -LR zsh
+    setopt extended_glob
+    local LC_ALL=C
+    local pwd="${PWD//(#m)([^@-Za-z&-;_~])/%${(l:2::0:)$(([##16]#MATCH))}}"
+    printf '\e]7;file://%s%s\e\' "$HOST" "$pwd"
+  }
+
+  __zk_prompt__osc7__chpwd
+  add-zsh-hook chpwd __zk_prompt__osc7__chpwd
+
+  (( ${+functions[prompt_cleanup]} )) \
+    && prompt_cleanup add-zsh-hook -d chpwd __zk_prompt__osc7__chpwd
+}
