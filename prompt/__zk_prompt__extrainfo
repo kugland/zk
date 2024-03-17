@@ -1,0 +1,45 @@
+__zk_prompt__extrainfo() {
+  emulate -LR zsh
+
+  __zk_prompt__extrainfo__precmd() {
+    emulate -LR zsh
+    (( ${+__zk_prompt__extrainfo__saved_prompt} )) && return
+
+    typeset -g __zk_prompt__extrainfo__saved_prompt=$PS1
+    typeset -g __zk_prompt__extrainfo__saved_rprompt=$RPROMPT
+
+    for func in ${__zk_prompt__extrainfo__funcs[@]}; do
+      (( ${__zk_prompt__extrainfo__added} )) && break
+      local -A reply=()
+      if $func; then
+        (( ${+reply[before_prompt]} )) && PS1=${reply[before_prompt]}$PS1
+        (( ${+reply[after_prompt]} )) && PS1=$PS1${reply[after_prompt]}
+        (( ${+reply[before_rprompt]} )) && RPROMPT=${reply[before_rprompt]}$RPROMPT
+        (( ${+reply[after_rprompt]} )) && RPROMPT=$RPROMPT${reply[after_rprompt]}
+      fi
+    done
+  }
+
+  __zk_prompt__extrainfo__preexec() {
+    emulate -LR zsh
+
+    PS1=$__zk_prompt__extrainfo__saved_prompt
+    RPROMPT=$__zk_prompt__extrainfo__saved_rprompt
+    unset __zk_prompt__extrainfo__saved_prompt
+    unset __zk_prompt__extrainfo__saved_rprompt
+  }
+
+  typeset -ga __zk_prompt__extrainfo__funcs=()
+
+  add-zsh-hook preexec __zk_prompt__extrainfo__preexec
+  add-zsh-hook precmd __zk_prompt__extrainfo__precmd
+
+  if (( ${+functions[prompt_cleanup]} )); then
+    unset __zk_prompt__extrainfo__funcs
+    unset __zk_prompt__extrainfo__saved_prompt
+    unset __zk_prompt__extrainfo__saved_rprompt
+    prompt_cleanup add-zsh-hook -d preexec __zk_prompt__extrainfo__preexec
+    prompt_cleanup add-zsh-hook -d precmd __zk_prompt__extrainfo__precmd
+  fi
+
+}

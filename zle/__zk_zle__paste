@@ -1,0 +1,72 @@
+# Paste from the clipboard with Ctrl+V
+__zk_zle__paste() {
+  emulate -LR zsh
+  zmodload zsh/parameter
+
+  __zk_zle__paste__osc52_start() {
+    emulate -LR zsh
+
+    typeset -g __zk_zle__paste__osc52_buffer=''
+    typeset -g __zk_zle__paste__osc52_prev_keymap="${KEYMAP}"
+
+    # Create new keymap to accept the base64 encoded data and to end the sequence
+    bindkey -N paste_osc52
+    bindkey -M paste_osc52 -R \
+      '0-9' __zk_zle__paste__osc52_char \
+      'A-Z' __zk_zle__paste__osc52_char \
+      'a-z' __zk_zle__paste__osc52_char
+    bindkey -M paste_osc52 \
+      '+' __zk_zle__paste__osc52_char \
+      '/' __zk_zle__paste__osc52_char \
+      '=' __zk_zle__paste__osc52_char \
+      '^[\'  __zk_zle__paste__osc52_end \
+      '^G' __zk_zle__paste__osc52_end
+    zle -K paste_osc52
+  }
+
+  __zk_zle__paste__osc52_end() {
+    emulate -LR zsh
+
+    zle -K $__zk_zle__paste__osc52_prev_keymap
+    bindkey -D paste_osc52
+    bindkey -M main -r '\e]52;c;' -r '\e]52;p;'
+
+    local text="$(base64 -d <<<"$__zk_zle__paste__osc52_buffer")"
+    unset __zk_zle__paste__osc52_buffer
+
+    BUFFER="${LBUFFER}${text}${RBUFFER}"
+    CURSOR=$(( CURSOR + ${#text} ))
+    zle redisplay
+  }
+
+  __zk_zle__paste__osc52_char() {
+    emulate -LR zsh
+    __zk_zle__paste__osc52_buffer+="$KEYS"
+  }
+
+  zle -N __zk_zle__paste__osc52_start
+  zle -N __zk_zle__paste__osc52_end
+  zle -N __zk_zle__paste__osc52_char
+
+  () {
+    local text=''
+    if (( $#WAYLAND_DISPLAY && ${+commands[wl-paste]} && !$#SSH_CONNECTION )); then
+      text="$(wl-paste -n --type='text/plain;charset=utf-8')"
+    elif (( $#DISPLAY && ${+commands[xclip]} && !$#SSH_CONNECTION )); then
+      text="$(xclip -o -selection clipboard)"
+    else
+      bindkey -M main \
+        '\e]52;c;' __zk_zle__paste__osc52_start \
+        '\e]52;p;' __zk_zle__paste__osc52_start
+      if (( ! ${+TMUX} )); then
+        print -n '\e]52;c;?\e\\'
+      else
+        print -n '\ePtmux;\e\e]52;c;?\a\e\\'
+      fi
+      return 0
+    fi
+    BUFFER="${LBUFFER}${text}${RBUFFER}"
+    CURSOR=$(( CURSOR + ${#text} ))
+    zle redisplay
+  }
+}

@@ -1,0 +1,8 @@
+.antidote
+.zcompdump
+.zsh_plugins.zsh
+
+__pycache__
+*.pyc
+
+.ruff_cache

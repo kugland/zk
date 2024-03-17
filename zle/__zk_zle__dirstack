@@ -1,0 +1,35 @@
+# Replace the top entry of the directory stack with fzf.
+__zk_zle__dirstack() {
+  emulate -L zsh
+  zmodload zsh/parameter
+
+  if (( ${+commands[fzf]} )); then
+    if (( ${#dirstack} >= 1 )); then
+      local -a FZF_OPTS=(
+        --height=10
+        --info=hidden
+        --prompt='New top of the stack ⟩ '
+        --read0 --print0 --no-sort --no-multi
+      )
+      for i in {1..${#dirstack}}; do printf "%d : %s\000" $i ${dirstack[$i]}; done \
+        | fzf "${FZF_OPTS[@]}" | IFS= read -r -d $'\0' dir
+      (( $? != 0 )) && { zle reset-prompt && return; }
+      local -i idx=${dir%% : *}
+      (( idx < 2 )) && { zle reset-prompt && return; }
+      local dir=${dir##* : }
+      local -a before=( ${dirstack[1,idx-1]} )
+      local -a after=( ${dirstack[idx+1,-1]} )
+
+      dirstack=($dir $before $after)
+      local old_buffer=$BUFFER
+      BUFFER=" cd ${(q)dir}"
+      zle accept-line
+      zle reset-prompt
+      zle -U "$old_buffer"
+    else
+      zle -M "Directory stack is empty."
+    fi
+  else
+    zle -M "fzf is not available, dirstack widget is disabled."
+  fi
+}

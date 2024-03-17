@@ -1,0 +1,36 @@
+# Restore the terminal to a sane state
+__zk_sanetty__reset() {
+  emulate -LR zsh
+
+  stty sane -imaxbel -brkint ixoff iutf8 >/dev/null 2>&1 </dev/tty
+
+  [[ $TERM != linux ]] && setopt combining_chars || setopt no_combining_chars
+
+  local -a reset_seqs
+  reset_seqs=(
+    '\e<'             # Exit VT52 mode.
+    '\e7\e[?1049l\e8' # Use main screen buffer.
+    '\e7\e[0;0r\e8'   # DECSTBM: unset top/bottom margins.
+    '\e(B\e)B'        # SCS: set G0 and G1 charsets to US-ASCII.
+    '\e%G'            # Enable UTF-8 mode.
+    '\Co'             # Invoke G0 charset as GL
+    '\e~'             # Invoke G1 charset as GR.
+    '\e#5'            # DECSWL: single-width line.
+    '\e[3l'           # DECCRM: don't show control characters.
+    '\e[20l'          # LNM: disable automatic new lines.
+    '\e[?5l'          # DECSCNM: disable reverse video.
+    '\e7\e[?6l\e8'    # DECOM: disable origin mode.
+    '\e[?7h'          # DECAWM: enable auto-wrap mode.
+    '\e[?8h'          # DECARM: enable auto-repeat keys.
+    '\e[?25h'         # DECTCEM: make cursor visible.
+    '\e[?2004h'       # Enable bracketed paste.
+    '\e[?'{9,100{0..6},101{5,6}}'l' # Disable xterm mouse and focus events.
+  )
+  [[ $TERM != linux ]] && reset_seqs+=( '\e*A\e+A' ) # SCS: set G2 and G3 charsets to Latin-1.
+  print -n ${(j::)reset_seqs}
+
+  # Send user-defined reset sequences
+  local -a reset_extra
+  zstyle -a :plugin:zk_sanetty reset-extra reset_extra
+  print -n ${(j::)reset_extra}
+}

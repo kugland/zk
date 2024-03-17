@@ -1,0 +1,41 @@
+# Show a badge when in nix-shell
+
+__zk_prompt__nixshell() {
+  emulate -LR zsh
+
+  __zk_prompt__nixshell__ellipsize() {
+    setopt local_options extended_glob
+    for pkg in ${(s/ /)NIX_SHELL_PACKAGES}; do
+      if (( $#package <= 12 )); then
+        pkgs+=" $pkg"
+      else
+        pkgs+=" ${pkg[1,11]}…"
+      fi
+    done
+    pkgs="${${pkgs//(#s)[[:blank:]]#}//[[:blank:]]#(#e)}"
+    if [[ "${pkgs[16]:- }" != ' ' ]]; then
+      pkgs=${${pkgs[1,16]}//[[:blank:]][^[:blank:]]#(#e)/ …}
+    fi
+    (( $#pkgs != 0 )) && pkgs=" $pkgs"
+  }
+
+  __zk_prompt__nixshell__extrainfo() {
+    emulate -LR zsh
+
+    if (( ${+IN_NIX_SHELL} )); then
+      local pkgs
+      __zk_prompt__nixshell__ellipsize
+      case $__zk_prompt__preset in
+        simple)
+          reply[after_rprompt]="  %K{blue}%B %F{cyan}nix%F{white}$pkgs %b%f%k"
+          ;;
+        fancy)
+          reply[after_rprompt]="  %F{blue}%K{blue}%B%F{cyan}󱄅%F{white}$pkgs%b%k%F{blue}%f"
+          ;;
+      esac
+    fi
+    return 0
+  }
+
+  __zk_prompt__extrainfo__funcs+=( __zk_prompt__nixshell__extrainfo )
+}

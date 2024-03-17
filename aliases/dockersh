@@ -1,0 +1,19 @@
+# Open a shell in a running Docker container
+dockersh() {
+  emulate -LR zsh
+  zmodload zsh/parameter
+
+  if [[ $# -ne 0 || -z ${commands[fzf]} || -z ${commands[docker]} ]] {
+    command dockersh "$@"
+  } else {
+    setopt local_options pipefail
+    docker ps --format '{{.ID}}  {{.Image}} / {{.Names}}' \
+      | fzf \
+            --select-1 --ansi --height=10 --info=hidden \
+            --prompt='⟩ ' --print0 --no-sort --no-multi --pointer='►' --cycle \
+            --header 'name          image / container' --layout=reverse \
+      | sed -z 's/ .*//g' \
+      | xargs -0 -t -I'{}' -o docker exec -ti {} \
+        sh -c 'if [ -x /bin/bash ]; then exec /bin/bash; else exec /bin/sh; fi'
+  }
+}

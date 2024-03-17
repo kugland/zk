@@ -1,0 +1,15 @@
+zsh-users/zsh-completions kind:defer
+zdharma-continuum/fast-syntax-highlighting kind:defer
+zsh-users/zsh-history-substring-search kind:defer
+romkatv/gitstatus kind:defer
+ohmyzsh/ohmyzsh path:plugins/command-not-found kind:defer
+chisui/zsh-nix-shell kind:clone
+
+kugland/zk path:zle
+kugland/zk path:history
+kugland/zk path:prompt kind:fpath
+kugland/zk path:gitstatus kind:defer
+kugland/zk path:windowtitle kind:defer
+kugland/zk path:aliases kind:defer
+kugland/zk path:sanetty kind:defer
+kugland/zk path:completion kind:defer

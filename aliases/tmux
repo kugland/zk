@@ -1,0 +1,32 @@
+# tmux - show a nice menu to select session when tmux is run without any parameters
+tmux() {
+  emulate -LR zsh
+  zmodload zsh/parameter
+
+  if [[ $# -ne 0 || -z ${commands[fzf]} ]]; then
+    command tmux "$@"
+  else
+    setopt local_options pipefail
+    local FZF_FORMAT=$'\e[33m#{session_id}\e[0m\t#{=/21/…:#{p21:session_name}}\t'
+    FZF_FORMAT+=$'#{session_windows}\t#{t/f/%Y-%m-%d %H#:%M#:%S/:session_created}'
+    local NEW_SESSION='<Create new session>'
+    local REPLY
+    { tmux list-sessions -F "$FZF_FORMAT" 2>/dev/null | sort -k1.7n,2;
+      print -Pr -- "%B%F{black}${NEW_SESSION}%b%f"
+      } | fzf \
+        --select-1 --ansi --height=10 --info=hidden \
+        --prompt='⟩ ' --print0 --no-sort --no-multi --pointer='►' --cycle \
+        --header $'id\tname\t\t\t#win\tcreated' --layout=reverse \
+        | sed -zE 's,\t.*,,g' \
+        | IFS= read -r -d $'\0' REPLY
+    (( $? != 0 )) && return 1
+    if [[ "$REPLY" = $NEW_SESSION ]]; then
+      REPLY="$(TMUX= tmux new-session -dP)"
+    fi
+    if [[ -n $TMUX ]]; then
+      tmux switch-client -t "$REPLY"
+    else
+      tmux attach -t "$REPLY"
+    fi
+  fi
+}

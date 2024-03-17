@@ -1,0 +1,17 @@
+# nmed - use vared to rename a file
+nmed() {
+  emulate -LR zsh
+
+  local -i ZSH_HIGHLIGHT_MAXLENGTH=0
+  local old
+  for old in "$@"; do
+    local new="$old"
+    if [[ -e "$old" ]]; then
+      print -Pn '%B%6FOld name%b:%B%7F '
+      print -r -- "$old"
+      vared -e -p '%B%6FNew name%b:%B%7F ' new && print -Pn '%b' && mv -i -v -- "$old" "$new"
+    else
+      >&2 print -r "nmed: ‘$old’: File not found."
+    fi
+  done
+}

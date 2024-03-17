@@ -1,0 +1,37 @@
+# Insert quoted file names with fzf
+__zk_zle__insert_files() {
+  emulate -L zsh
+  zmodload zsh/parameter
+
+  if (( ${+commands[fzf]} )); then
+    zle select-a-shell-word
+    zle deactivate-region
+    CURSOR+=1
+    local opts=( --multi --print0 --cycle --reverse --prompt='⟩ ' --pointer='►' )
+    if (( COLUMNS > 160 )) ; then
+      opts+=(--preview-window=right:50%:wrap)
+      width=$(( ( COLUMNS / 2 ) - 5 ))
+    else
+      opts+=(--preview-window=top:50%:wrap)
+      width=$(( COLUMNS - 5 ))
+    fi
+    if (( ${+commands[bat]} )); then
+      opts+=(--preview "bat --color=always --wrap=character --terminal-width=$width {}")
+    else
+      opts+=(--preview 'cat {}')
+    fi
+    local files=""
+    fzf "${opts[@]}" </dev/tty | while IFS= read -r -d $'\0' file; do
+      files+="${(qq)file} "
+    done
+    if [[ -n "$files" ]]; then
+      if [[ -n "$LBUFFER" && "$LBUFFER" != *' ' ]]; then
+        LBUFFER+=' '
+      fi
+      LBUFFER+="$files"
+      zle redisplay
+    fi
+  else
+    zle -M 'fzf not found, file search widget is disabled.'
+  fi
+}
