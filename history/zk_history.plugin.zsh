@@ -1,5 +1,5 @@
 local -a OPTS=(
-  append_history        # Append to history file, don't overwrite it.
+  inc_append_history    # Append to history file incrementally.
   extended_history      # Timestamp and duration in history entries.
   hist_ignore_all_dups  # Don't record duplicate commands in history.
   hist_ignore_space     # Don't record commands starting with a space.
@@ -15,11 +15,15 @@ setopt ${OPTS[@]}
 HISTSIZE=10000  # Maximum number of history entries in memory.
 SAVEHIST=99999  # Number of history entries to save to file.
 
-HISTFILE="${XDG_RUNTIME_DIR:-/tmp}/zsh-$UID-history" # Set history file.
+HISTFILE="${XDG_CACHE_HOME:-$HOME/.cache}/zsh-history"  # Set history file.
 
 __zk_history__create_histfile() {
-  zmodload -mF zsh/files b:zf_chmod b:zf_chown
-  : >>$HISTFILE                 # Create the history file.
+  emulate -LR zsh
+  zmodload -mF zsh/files b:zf_chmod b:zf_chown b:zf_mkdir
+  zf_mkdir -p ${HISTFILE:h}     # Create the history file directory.
+  zf_chmod 0700 ${HISTFILE:h}   # Set permissions to 700.
+  zf_chown $UID:$GID ${HISTFILE:h}  # Set ownership to the user.
+  : >>$HISTFILE                 # Create the history file if it doesn't exist.
   zf_chmod 0600 $HISTFILE       # Set permissions to 600.
   zf_chown $UID:$GID $HISTFILE  # Set ownership to the user.
 }
