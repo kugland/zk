@@ -7,7 +7,7 @@
   local zcompdump="${xdg_cache_home}/zcompdump"
   local zcompdump_mtime=$( [[ -e "$zcompdump" ]] && zstat +mtime "$zcompdump" || print 0 )
   local zcompcache="${xdg_cache_home}/zcompcache"
-  zf_mkdir $zcompcache
+  zf_mkdir -p $zcompcache
   zf_chmod 0700 $zcompcache
   zf_chown $UID:$GID $zcompcache
 
