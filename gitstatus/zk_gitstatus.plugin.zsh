@@ -7,7 +7,7 @@
     emulate -LR zsh
     setopt local_options no_sh_word_split
 
-    (( ${+commands[git]} && ${+functions[gitstatus_start]} )) || return 0
+    (( ${+commands[gitstatusd]} && ${+functions[gitstatus_start]} )) || return 0
 
     typeset -g __zk_git__status=''
 
