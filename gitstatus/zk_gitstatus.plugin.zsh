@@ -47,7 +47,7 @@
         p+=' '
         where="$VCS_STATUS_LOCAL_BRANCH"
       elif [[ -n "$VCS_STATUS_TAG" ]]; then
-        p+="$ {styles[WHERE_TAG]}"
+        p+="${styles[WHERE_TAG]}"
         where="$VCS_STATUS_TAG"
       else
         p+=" ${styles[WHERE_COMMIT]}"
