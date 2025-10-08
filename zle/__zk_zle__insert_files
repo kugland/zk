@@ -7,7 +7,7 @@ __zk_zle__insert_files() {
     zle select-a-shell-word
     zle deactivate-region
     CURSOR+=1
-    local opts=( --multi --print0 --cycle --reverse --prompt='⟩ ' --pointer='►' )
+    local width opts=( --multi --print0 --cycle --reverse --prompt='⟩ ' --pointer='►' )
     if (( COLUMNS > 160 )) ; then
       opts+=(--preview-window=right:50%:wrap)
       width=$(( ( COLUMNS / 2 ) - 5 ))
