@@ -19,7 +19,7 @@ tmux() {
         --header $'id\tname\t\t\t#win\tcreated' --layout=reverse \
         | sed -zE 's,\t.*,,g' \
         | IFS= read -r -d $'\0' REPLY
-    (( $? != 0 )) && return 1
+    (( $? )) && return 1
     if [[ "$REPLY" = $NEW_SESSION ]]; then
       REPLY="$(TMUX= tmux new-session -dP)"
     fi

@@ -13,7 +13,7 @@ __zk_zle__dirstack() {
       )
       for i in {1..${#dirstack}}; do printf "%d : %s\000" $i ${dirstack[$i]}; done \
         | fzf "${FZF_OPTS[@]}" | IFS= read -r -d $'\0' dir
-      (( $? != 0 )) && { zle reset-prompt && return; }
+      (( $? )) && { zle reset-prompt && return; }
       local -i idx=${dir%% : *}
       (( idx < 2 )) && { zle reset-prompt && return; }
       local dir=${dir##* : }
