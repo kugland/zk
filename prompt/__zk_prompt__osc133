@@ -29,7 +29,7 @@ __zk_prompt__osc133() {
 
   __zk_prompt__osc133__preexec() {
     emulate -LR zsh
-    printf '\e]133;C;%s\e\\'
+    printf '\e]133;C;%s\e\\' "$1"
   }
 
   add-zsh-hook precmd __zk_prompt__osc133__precmd
