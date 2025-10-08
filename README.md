@@ -134,12 +134,10 @@ and provides a more intuitive (at least for me) set of key bindings.
 | `Ctrl`+`U`                          | Delete whole line                                  |
 | `Ctrl`+`V`                          | Paste from X11 or Wayland clipboard[^CtrlV]        |
 | `Ctrl`+`Z` / `Ctrl`+`Y`             | Undo/redo                                          |
-| `Ctrl`+`Enter`                      | Accept line and hold in buffer                     |
-| `Shift`+`Enter`                     | New line                                           |
 | `Space`                             | Insert space and perform history expansion         |
 | `Enter`                             | Accept line                                        |
-| `Ctrl`+`Enter`                      | Accept line and hold in buffer                     |
 | `Shift`+`Enter`                     | Insert newline                                     |
+| `Ctrl`+`Enter`                      | Accept line and hold in buffer                     |
 | `Ctrl`+`'` / `Esc`+`'`              | Quote line                                         |
 
 [^PgUpPgDown]: Either builtin Zsh (`history-beginning-search-*`), or substring search with
