@@ -5,8 +5,9 @@ __zk_prompt__nixshell() {
 
   __zk_prompt__nixshell__ellipsize() {
     setopt local_options extended_glob
+    local pkg pkgs
     for pkg in ${(s/ /)NIX_SHELL_PACKAGES}; do
-      if (( $#package <= 12 )); then
+      if (( $#pkg <= 12 )); then
         pkgs+=" $pkg"
       else
         pkgs+=" ${pkg[1,11]}…"
