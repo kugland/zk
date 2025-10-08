@@ -31,7 +31,7 @@ __zk_zle__paste() {
     bindkey -D paste_osc52
     bindkey -M main -r '\e]52;c;' -r '\e]52;p;'
 
-    local text="$(base64 -d <<<"$__zk_zle__paste__osc52_buffer")"
+    local text="$(base64 -d <<<"$__zk_zle__paste__osc52_buffer" 2>/dev/null)"
     unset __zk_zle__paste__osc52_buffer
 
     BUFFER="${LBUFFER}${text}${RBUFFER}"
