@@ -3,7 +3,7 @@
   zmodload zsh/parameter
 
   if (( ${+commands[eza]} )); then
-    alias ls='command eza -h --icons=auto --color=auto --group-directories-first'
+    alias ls='command eza -h --icons=auto --color=auto --group-directories-first --no-quotes --smart-group'
   else
     alias ls='command ls -h -p --color=auto --group-directories-first --time-style=long-iso'
   fi
