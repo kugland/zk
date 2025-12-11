@@ -2,7 +2,11 @@
   emulate -LR zsh
   zmodload zsh/parameter
 
-  alias ls='command ls -h -p --color=auto --group-directories-first --time-style=long-iso'
+  if (( ${+commands[eza]} )); then
+    alias ls='command eza -h --icons=auto --color=auto --group-directories-first'
+  else
+    alias ls='command ls -h -p --color=auto --group-directories-first --time-style=long-iso'
+  fi
   alias diff='command diff --color=auto'
   alias ip='command ip --color=auto'
   alias rm='command rm -I'  # Ask for confirmation when deleting more than 3 files
