@@ -77,4 +77,7 @@
   zstyle ':completion:*:parameters' ignored-patterns '_*'
   zstyle ':completion:*:functions' ignored-patterns '_*'
   zstyle ':completion:*' single-ignored show
+
+  # Add user-defined git commands
+  zstyle ':completion:*:*:git:*' user-commands ${${(M)${(k)commands}:#git-*}/git-/}
 }
