@@ -14,10 +14,10 @@
     () {
       local curdir="${PWD:A}"
       while [[ "$curdir" != "/" ]]; do        # Scan up the directory tree.
-        [[ -d "$curdir/.git" ]] && break      # Stop once we find a git repo.
+        [[ -d "$curdir/.git" || -f "$curdir/.git" ]] && break  # Stop once we find a git repo.
         curdir="${curdir:h}"                  # Go up one level.
       done
-      [[ ! -d "$curdir/.git" ]] && return 1   # Not a git repo.
+      [[ ! -d "$curdir/.git" && ! -f "$curdir/.git" ]] && return 1  # Not a git repo.
       return 0                                # It's a git repo.
     } && {
       (( $__zk_git__last_active == 0 )) && gitstatus_start -e -{s,u,c,d}-1 -t0.2 -m5000 MY
