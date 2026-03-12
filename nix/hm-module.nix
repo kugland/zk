@@ -6,7 +6,7 @@
 }: let
   cfg = config.programs.zsh.zk;
 
-  inherit (flakePackages."${pkgs.system}") zsh-zk;
+  inherit (flakePackages."${pkgs.stdenv.hostPlatform.system}") zsh-zk;
 in {
   options.programs.zsh.zk = {
     enable = lib.mkOption {
