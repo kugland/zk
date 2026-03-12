@@ -1,15 +1,15 @@
 {
   pkgs,
+  lib ? pkgs.lib,
   zsh-zk,
-}: ''
+  consoleColors,
+}: let
+  colors = lib.lists.imap0 (i: color: "'\\e]P${lib.toHexString i}${color}\\e\\\\'") consoleColors;
+in ''
   zstyle :plugin:zk_zle use-history-substring-search yes
 
   if [[ $TERM = linux ]]; then
-    zstyle :plugin:zk_sanetty reset-extra \
-      '\e]P0181716\e\\' '\e]P1c74f49\e\\' '\e]P251c236\e\\' '\e]P3c4903b\e\\' \
-      '\e]P4648ecf\e\\' '\e]P5b475ca\e\\' '\e]P63bc4bf\e\\' '\e]P7ccc8c4\e\\' \
-      '\e]P883827b\e\\' '\e]P9ff7068\e\\' '\e]Pa7fff57\e\\' '\e]Pbffbf57\e\\' \
-      '\e]Pc7db7ff\e\\' '\e]Pddf91f4\e\\' '\e]Pe57fffc\e\\' '\e]Pfffffff\e\\'
+    zstyle :plugin:zk_sanetty reset-extra ${lib.concatStringsSep " " colors}
   else
     zstyle -d :plugin:zk_sanetty reset-extra
   fi

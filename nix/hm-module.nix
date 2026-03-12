@@ -8,6 +8,8 @@
 
   inherit (flakePackages."${pkgs.stdenv.hostPlatform.system}") zsh-zk;
 in {
+  imports = [./common-module.nix];
+
   options.programs.zsh.zk = {
     enable = lib.mkOption {
       type = lib.types.bool;
@@ -18,6 +20,9 @@ in {
 
   config = lib.mkIf cfg.enable {
     home.packages = [pkgs.zsh pkgs.gitstatus];
-    home.file.".zshrc".text = import ./zshrc.nix {inherit pkgs zsh-zk;};
+    home.file.".zshrc".text = import ./zshrc.nix {
+      inherit pkgs zsh-zk;
+      inherit (cfg) consoleColors;
+    };
   };
 }
