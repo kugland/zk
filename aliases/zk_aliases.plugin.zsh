@@ -33,5 +33,5 @@
   alias supernice='ionice -c3 nice -n19 --'
 
   # Autoloaded functions
-  autoload -Uz detach dockersh nmed
+  autoload -Uz detach nmed
 }
