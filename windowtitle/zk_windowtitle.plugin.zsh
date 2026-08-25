@@ -41,18 +41,16 @@
     while [[ $REPLY = *' …'* ]]; do REPLY=${REPLY// …/…}; done
   }
 
-  # Replace control characters with their Unicode representations.
+  # Replace control characters with their Unicode Control Pictures
+  # representations (U+2400 + code point for 0x00-0x1F, U+2421 for DEL).
   __zk_windowtitle__replace_cntl() {
+    emulate -LR zsh
     REPLY="$1"
-    REPLY=${${${${REPLY//$'\x00'/␀}//$'\x01'/␁}//$'\x02'/␂}//$'\x03'/␃}
-    REPLY=${${${${REPLY//$'\x04'/␄}//$'\x05'/␅}//$'\x06'/␆}//$'\x07'/␇}
-    REPLY=${${${${REPLY//$'\x08'/␈}//$'\x09'/␉}//$'\x0a'/␊}//$'\x0b'/␋}
-    REPLY=${${${${REPLY//$'\x0c'/␌}//$'\x0d'/␍}//$'\x0e'/␎}//$'\x0f'/␏}
-    REPLY=${${${${REPLY//$'\x10'/␐}//$'\x11'/␑}//$'\x12'/␒}//$'\x13'/␓}
-    REPLY=${${${${REPLY//$'\x14'/␔}//$'\x15'/␕}//$'\x16'/␖}//$'\x17'/␗}
-    REPLY=${${${${REPLY//$'\x18'/␘}//$'\x19'/␙}//$'\x1a'/␚}//$'\x1b'/␛}
-    REPLY=${${${${REPLY//$'\x1c'/␜}//$'\x1d'/␝}//$'\x1e'/␞}//$'\x1f'/␟}
-    REPLY=${REPLY//$'\x7f'/␡}
+    local -i i cp
+    for i in {0..31} 127; do
+      cp=$(( i == 127 ? 0x2421 : 0x2400 + i ))
+      REPLY=${REPLY//${(#)i}/${(#)cp}}
+    done
   }
 
   __zk_windowtitle__print_title() {
