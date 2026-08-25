@@ -1,16 +1,21 @@
-local -a OPTS=(
-  inc_append_history    # Append to history file incrementally.
-  extended_history      # Timestamp and duration in history entries.
-  hist_ignore_all_dups  # Don't record duplicate commands in history.
-  hist_ignore_space     # Don't record commands starting with a space.
-  hist_no_functions     # Don't record functions in history.
-  hist_reduce_blanks    # Remove extra spaces from history.
-  hist_verify           # History expansion just loads line.
-  no_hist_beep          # Don't beep when searching history.
-  share_history         # Share history between multiple shells.
-)
-[[ $OSTYPE = linux-* ]] && OPTS+=( hist_fcntl_lock )  # Use fcntl() to lock the history file.
-setopt ${OPTS[@]}
+() {
+  # No `emulate -LR zsh` here: these options must remain set after this
+  # function returns. Only $OPTS itself needs to be scoped to avoid leaking
+  # a generic global name into the interactive shell.
+  local -a OPTS=(
+    inc_append_history    # Append to history file incrementally.
+    extended_history      # Timestamp and duration in history entries.
+    hist_ignore_all_dups  # Don't record duplicate commands in history.
+    hist_ignore_space     # Don't record commands starting with a space.
+    hist_no_functions     # Don't record functions in history.
+    hist_reduce_blanks    # Remove extra spaces from history.
+    hist_verify           # History expansion just loads line.
+    no_hist_beep          # Don't beep when searching history.
+    share_history         # Share history between multiple shells.
+  )
+  [[ $OSTYPE = linux-* ]] && OPTS+=( hist_fcntl_lock )  # Use fcntl() to lock the history file.
+  setopt ${OPTS[@]}
+}
 
 HISTSIZE=10000  # Maximum number of history entries in memory.
 SAVEHIST=99999  # Number of history entries to save to file.

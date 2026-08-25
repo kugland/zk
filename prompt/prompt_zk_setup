@@ -16,7 +16,7 @@ HELP
 prompt_zk_setup() {
   emulate zsh
 
-  preset="${1:-simple}"
+  local preset="${1:-simple}"
   if [[ $preset != (simple|fancy|minimal) ]]; then
     print "prompt_zk_setup: valid presets are 'simple', 'fancy', and 'minimal'."
     return 1

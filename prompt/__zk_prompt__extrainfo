@@ -8,6 +8,7 @@ __zk_prompt__extrainfo() {
     typeset -g __zk_prompt__extrainfo__saved_prompt=$PS1
     typeset -g __zk_prompt__extrainfo__saved_rprompt=$RPROMPT
 
+    local func
     for func in ${__zk_prompt__extrainfo__funcs[@]}; do
       (( ${__zk_prompt__extrainfo__added} )) && break
       local -A reply=()
