@@ -20,17 +20,14 @@ in {
 
   config = lib.mkIf (lib.length cfg.users > 0) {
     environment.systemPackages = [pkgs.zsh pkgs.gitstatus];
-    system.activationScripts.zsh-zk-install = lib.mkIf (lib.length cfg.users > 0) (
-      let
-        zshrc = pkgs.writeText "zk-zshrc" (import ./zshrc.nix {
-          inherit pkgs zsh-zk;
-          inherit (cfg) consoleColors;
-        });
-        targets = map (user: "${config.users.users.${user}.home}/.zshrc") cfg.users;
-      in
-        lib.concatStringsSep "\n" (
-          map (target: "ln -sf ${zshrc} ${lib.escapeShellArg [target]}") targets
-        )
-    );
+    # Use tmpfiles instead of an activation script: activation runs before
+    # systemd mounts non-boot filesystems, so a separate /home would hide the link.
+    systemd.tmpfiles.rules = let
+      zshrc = pkgs.writeText "zk-zshrc" (import ./zshrc.nix {
+        inherit pkgs zsh-zk;
+        inherit (cfg) consoleColors;
+      });
+    in
+      map (user: "L+ ${config.users.users.${user}.home}/.zshrc - - - - ${zshrc}") cfg.users;
   };
 }
